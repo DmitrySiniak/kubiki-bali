@@ -3,35 +3,35 @@ const newGame = document.querySelector("#newGame")
 const rollDice = document.querySelector("#rollDice")
 const diceResult = document.querySelector("#diceResult")
 const choiceBtns = document.querySelector("#choiceBtns")
-const winner = document.querySelector("#winner")
-const playerSelect = document.querySelector("#playerCount")
 const playersContainer = document.querySelector("#playersContainer")
+const playersSelect = document.querySelector("#playersSelect")
+const winner = document.querySelector("#winner")
 
-let players = []
-let playerCount = 2
+let playersNums = []
+let playesAmount
 let currentPlayer = 0
 let dice1, dice2
+
 rollDice.disabled = true
 
 newGame.addEventListener("click", startNewGame)
 rollDice.addEventListener("click", rollDices)
 
 function startNewGame(){
-    winner.textContent = ""
-    rollDice.disabled = false
+    playersNums = []
+    playesAmount = Number(playersSelect.value)
 
-    playerCount = Number(playerSelect.value)
-    players = []
-
-    for(let i = 0; i < playerCount; i++){
-        players.push([1,2,3,4,5,6,7,8,9,10,11,12])
+    for(let i = 0; i < playesAmount; i++){
+        playersNums.push([1,2,3,4,5,6,7,8,9,10,11,12])
     }
 
     currentPlayer = 0
-
     turnNum.textContent = `Очередь игрока ${currentPlayer + 1}`
+    winner.textContent = ""
     diceResult.textContent = ""
     choiceBtns.innerHTML = ""
+
+    rollDice.disabled = false
 
     showNums()
 }
@@ -39,7 +39,7 @@ function startNewGame(){
 function showNums(){
     playersContainer.innerHTML = ""
 
-    players.forEach((nums, index) => {
+    playersNums.forEach((nums, index) => {
         const playerDiv = document.createElement("div")
         playerDiv.classList.add("player")
 
@@ -73,6 +73,9 @@ function rollDices(){
 
     diceResult.textContent = `Выпало ${dice1} и ${dice2}`
 
+    let currentArray = playersNums[currentPlayer]
+    let sum = dice1 + dice2
+
     const sumBtn = document.createElement("button")
     sumBtn.textContent = "Сумма"
 
@@ -82,49 +85,50 @@ function rollDices(){
     const skipBtn = document.createElement("button")
     skipBtn.textContent = "Пропуск"
 
-    choiceBtns.appendChild(sumBtn)
-    choiceBtns.appendChild(separateBtn)
-    choiceBtns.appendChild(skipBtn)
+    if(!currentArray.includes(sum)){
+        sumBtn.disabled = true
+    }
 
-    sumBtn.addEventListener("click", () => delSum())
-    separateBtn.addEventListener("click", () => delSeparate())
+    if(!currentArray.includes(dice1) && !currentArray.includes(dice2)){
+        separateBtn.disabled = true
+    }
+
+    sumBtn.addEventListener("click", delSum)
+    separateBtn.addEventListener("click", delSeparate)
     skipBtn.addEventListener("click", skipTurn)
+
+    choiceBtns.append(sumBtn, separateBtn, skipBtn)
 
     rollDice.disabled = true
 }
 
 function delSum(){
-    let currentArray = players[currentPlayer]
+    let currentArray = playersNums[currentPlayer]
     let sum = dice1 + dice2
 
-    if(currentArray.includes(sum)){
-        deleteNum(currentArray, sum)
-        nextTurn()
-    }
+    
+
+    deleteNum(currentArray, sum)
+    checking(currentArray)
 }
 
 function delSeparate(){
-    let currentArray = players[currentPlayer]
-
-    let changed = false
+    let currentArray = playersNums[currentPlayer]
 
     if(currentArray.includes(dice1)){
         deleteNum(currentArray, dice1)
-        changed = true
     }
 
     if(currentArray.includes(dice2)){
         deleteNum(currentArray, dice2)
-        changed = true
     }
 
-    if(changed){
-        nextTurn()
-    }
+    checking(currentArray)
 }
 
 function skipTurn(){
-    nextTurn()
+    let currentArray = playersNums[currentPlayer]
+    checking(currentArray)
 }
 
 function deleteNum(array, number){
@@ -134,9 +138,7 @@ function deleteNum(array, number){
     }
 }
 
-function nextTurn(){
-    let currentArray = players[currentPlayer]
-
+function checking(currentArray){
     showNums()
 
     if(currentArray.length === 0){
@@ -146,13 +148,10 @@ function nextTurn(){
         return
     }
 
-    currentPlayer = (currentPlayer + 1) % playerCount
-
+    currentPlayer = (currentPlayer + 1) % playesAmount
     turnNum.textContent = `Очередь игрока ${currentPlayer + 1}`
 
     rollDice.disabled = false
     diceResult.textContent = ""
     choiceBtns.innerHTML = ""
-
-    showNums()
 }
